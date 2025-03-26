@@ -5,6 +5,7 @@ import TaskService from '../../api/task.service';
 const initialState = {
   tasks: [],
   currentTask: null,
+  projectTasks: [],
   myTasks: [],
   loading: false,
   error: null
@@ -132,7 +133,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch tasks';
+        state.error = action.payload || { message: 'Failed to fetch tasks' };
       })
       
       // Fetch task by ID
@@ -146,7 +147,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTaskById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch task';
+        state.error = action.payload || { message: 'Failed to fetch task' };
       })
       
       // Create task
@@ -157,11 +158,29 @@ const taskSlice = createSlice({
       .addCase(createTask.fulfilled, (state, action) => {
         state.loading = false;
         state.tasks.push(action.payload.data.task);
-        state.currentTask = action.payload.data.task;
+        
+        // If this task belongs to a project that we're currently viewing,
+        // add it to the projectTasks array as well
+        if (state.projectTasks && action.payload.data.task.project) {
+          const projectId = typeof action.payload.data.task.project === 'object' 
+            ? action.payload.data.task.project._id 
+            : action.payload.data.task.project;
+            
+          // Check if we're currently viewing this project's tasks
+          if (state.projectTasks.length > 0) {
+            const currentProjectId = typeof state.projectTasks[0].project === 'object'
+              ? state.projectTasks[0].project._id
+              : state.projectTasks[0].project;
+              
+            if (projectId === currentProjectId) {
+              state.projectTasks.push(action.payload.data.task);
+            }
+          }
+        }
       })
       .addCase(createTask.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to create task';
+        state.error = action.payload || { message: 'Failed to create task' };
       })
       
       // Update task
@@ -183,10 +202,17 @@ const taskSlice = createSlice({
             task._id === updatedTask._id ? updatedTask : task
           );
         }
+        
+        // Also update in projectTasks if present
+        if (state.projectTasks.some(task => task._id === updatedTask._id)) {
+          state.projectTasks = state.projectTasks.map(task => 
+            task._id === updatedTask._id ? updatedTask : task
+          );
+        }
       })
       .addCase(updateTask.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to update task';
+        state.error = action.payload || { message: 'Failed to update task' };
       })
       
       // Delete task
@@ -198,13 +224,14 @@ const taskSlice = createSlice({
         state.loading = false;
         state.tasks = state.tasks.filter(task => task._id !== action.payload);
         state.myTasks = state.myTasks.filter(task => task._id !== action.payload);
+        state.projectTasks = state.projectTasks.filter(task => task._id !== action.payload);
         if (state.currentTask && state.currentTask._id === action.payload) {
           state.currentTask = null;
         }
       })
       .addCase(deleteTask.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to delete task';
+        state.error = action.payload || { message: 'Failed to delete task' };
       })
       
       // Add task comment
@@ -219,10 +246,17 @@ const taskSlice = createSlice({
           task._id === updatedTask._id ? updatedTask : task
         );
         state.currentTask = updatedTask;
+        
+        // Also update in projectTasks if present
+        if (state.projectTasks.some(task => task._id === updatedTask._id)) {
+          state.projectTasks = state.projectTasks.map(task => 
+            task._id === updatedTask._id ? updatedTask : task
+          );
+        }
       })
       .addCase(addTaskComment.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to add comment';
+        state.error = action.payload || { message: 'Failed to add comment' };
       })
       
       // Fetch my tasks
@@ -236,7 +270,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchMyTasks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch your tasks';
+        state.error = action.payload || { message: 'Failed to fetch your tasks' };
       })
       
       // Fetch tasks by project
@@ -246,11 +280,11 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasksByProject.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload.data.tasks;
+        state.projectTasks = action.payload.data.tasks;
       })
       .addCase(fetchTasksByProject.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch project tasks';
+        state.error = action.payload || { message: 'Failed to fetch project tasks' };
       });
   }
 });

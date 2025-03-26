@@ -11,6 +11,7 @@ import Projects from '../pages/Projects';
 import ProjectDetail from '../pages/ProjectDetail';
 import Tasks from '../pages/Tasks';
 import TaskDetail from '../pages/TaskDetail';
+import TaskForm from '../pages/TaskForm';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 import Login from '../pages/Login';
@@ -46,6 +47,7 @@ export default function Router() {
         { path: 'projects/:id', element: <ProjectDetail /> },
         { path: 'projects/:id/edit', element: <ProjectDetail /> },
         { path: 'tasks', element: <Tasks /> },
+        { path: 'tasks/new', element: <TaskForm /> },
         { path: 'tasks/:id', element: <TaskDetail /> },
         { path: 'tasks/:id/edit', element: <TaskDetail /> },
         { path: 'profile', element: <Profile /> },

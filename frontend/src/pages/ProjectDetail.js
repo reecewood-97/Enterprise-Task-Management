@@ -108,7 +108,7 @@ const ProjectDetail = () => {
   
   // Calculate project statistics
   const calculateProjectStats = () => {
-    if (!projectTasks || projectTasks.length === 0) {
+    if (!projectTasks || !projectTasks.length) {
       return {
         totalTasks: 0,
         completedTasks: 0,
@@ -297,9 +297,9 @@ const ProjectDetail = () => {
                   </Typography>
                   <AvatarGroup max={5}>
                     {currentProject?.members?.map((member) => (
-                      <Tooltip key={member._id} title={member.name}>
-                        <Avatar alt={member.name} src={member.avatar}>
-                          {member.name.charAt(0)}
+                      <Tooltip key={member._id} title={member.name || 'Unknown User'}>
+                        <Avatar alt={member.name || 'Unknown'} src={member.avatar}>
+                          {member.name ? member.name.charAt(0) : '?'}
                         </Avatar>
                       </Tooltip>
                     ))}
@@ -351,9 +351,9 @@ const ProjectDetail = () => {
             <Card>
               {tasksLoading ? (
                 <LinearProgress />
-              ) : projectTasks.length > 0 ? (
+              ) : projectTasks && projectTasks.length > 0 ? (
                 <List>
-                  {projectTasks.map((task) => {
+                  {projectTasks && projectTasks.map((task) => {
                     const isOverdue = task.status !== 'completed' && new Date(task.dueDate) < new Date();
                     
                     return (
